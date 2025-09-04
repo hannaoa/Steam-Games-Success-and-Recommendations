@@ -3,7 +3,7 @@
 # Hanna 
 # 1. Place this file next to steam_games.csv
 # 2. make sure virtual enviornment is set up python -m venv venv
-# 3. pip install -U streamlit pandas plotly numpy scikit-learn nltk wordcloud matplotlib
+# 3. pip install -U streamlit pandas plotly numpy scikit-learn nltk wordcloud matplotlib gdown re os pathlin typing
 # 4. to run write in terminal: streamlit run steamdb.py
 # ──────────────────────────────────────────────────────────────
 from pathlib import Path
@@ -16,6 +16,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import nltk
+import re
+import os
+import gdown
+from pathlib import Path
+from typing import Union
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -237,11 +242,19 @@ div[data-testid="metric-container"] > label {{color:{STEAM_TEXT};}}
     unsafe_allow_html=True,
 )
 
-# 2 · Load & clean data
-@st.cache_data(show_spinner="Loading CSV…")
+# 2 Load & clean data
 @st.cache_data(show_spinner="Loading CSV…")
 def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
+    # If file is missing, download it from Google Drive
+    if not os.path.exists(path):
+        file_id = "1ZHXAGndVyWHv5ldKk49J775c5pLac4a" 
+        url = f"https://drive.google.com/uc?id={file_id}"
+        gdown.download(url, path, quiet=False)
+
+    # Read CSV
     df = pd.read_csv(path)
+
+    # Clean column names
     df.columns = (
         df.columns.str.strip()
         .str.lower()
@@ -249,10 +262,12 @@ def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
         .str.replace("-", "_")
     )
 
+    # Handle release_date → year
     if "release_date" in df.columns:
         df["release_date"] = pd.to_datetime(df["release_date"], errors="coerce")
         df["year"] = df["release_date"].dt.year
 
+    # Convert numeric fields
     for col in [
         "price",
         "positive",
@@ -265,10 +280,12 @@ def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
+    # Positive review ratio
     if {"positive", "negative"}.issubset(df.columns):
         denom = df["positive"] + df["negative"]
         df["positive_ratio"] = np.where(denom > 0, df["positive"] / denom, np.nan)
 
+    # Parse genres
     if "genres" in df.columns:
         df["genres"] = (
             df["genres"]
@@ -278,11 +295,55 @@ def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
 
     return df
 
-
+# Load once
 df = load_data()
+st.write("✅ Dataset loaded:", df.shape)
+
+# @st.cache_data(show_spinner="Loading CSV…")
+# @st.cache_data(show_spinner="Loading CSV…")
+# def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
+#     df = pd.read_csv(path)
+#     df.columns = (
+#         df.columns.str.strip()
+#         .str.lower()
+#         .str.replace(" ", "_")
+#         .str.replace("-", "_")
+#     )
+
+#     if "release_date" in df.columns:
+#         df["release_date"] = pd.to_datetime(df["release_date"], errors="coerce")
+#         df["year"] = df["release_date"].dt.year
+
+#     for col in [
+#         "price",
+#         "positive",
+#         "negative",
+#         "average_playtime_forever",
+#         "average_playtime_two_weeks",
+#         "dlc_count",
+#         "required_age",
+#     ]:
+#         if col in df.columns:
+#             df[col] = pd.to_numeric(df[col], errors="coerce")
+
+#     if {"positive", "negative"}.issubset(df.columns):
+#         denom = df["positive"] + df["negative"]
+#         df["positive_ratio"] = np.where(denom > 0, df["positive"] / denom, np.nan)
+
+#     if "genres" in df.columns:
+#         df["genres"] = (
+#             df["genres"]
+#             .fillna("")
+#             .apply(lambda s: tuple(g.strip() for g in re.split(r"[;,]", str(s)) if g.strip()))
+#         )
+
+#     return df
+
+
+# df = load_data()
 
 # Hanna
-# 2. Sidebar filters
+# 3. Sidebar filters
 with st.sidebar:
     st.header("Filters")
 
