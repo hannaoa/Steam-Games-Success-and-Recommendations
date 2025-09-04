@@ -1,9 +1,10 @@
 # steam_dashboard.py ───────────────────────────────────────────
 # Streamlit dashboard for FronkonGames / Steam dataset
-#
-# ➊  Place this file next to steam_games.csv
-# ➋  pip install -U streamlit pandas plotly numpy scikit-learn nltk wordcloud matplotlib
-# ➌  to run write in terminal: streamlit run steamdb.py
+# Hanna 
+# 1. Place this file next to steam_games.csv
+# 2. make sure virtual enviornment is set up python -m venv venv
+# 3. pip install -U streamlit pandas plotly numpy scikit-learn nltk wordcloud matplotlib
+# 4. to run write in terminal: streamlit run steamdb.py
 # ──────────────────────────────────────────────────────────────
 from pathlib import Path
 import re, string
@@ -31,9 +32,8 @@ import matplotlib.pyplot as plt
 
 from typing import Union
 
-# ──────────────────────────────────────────────────────────────
-# 0 · Cached helpers
-# ──────────────────────────────────────────────────────────────
+# Hanna
+# Cached helpers
 @st.cache_resource(show_spinner="Training NLP model…")
 def build_word_effects(df: pd.DataFrame, target_q=0.80):
     try:
@@ -121,10 +121,8 @@ def build_success_model(df: pd.DataFrame, threshold=0.80):
     )
     return imp_df, acc, clf, X.columns
 
-
-# ──────────────────────────────────────────────────────────────
+# Hanna
 # Recommendation tab with TF-IDF based content filtering
-# ──────────────────────────────────────────────────────────────
 def run_recommender_tab(df):
     st.header("Game Recommender 🎯")
 
@@ -217,10 +215,8 @@ def run_recommender_tab(df):
         st.info("Genre information is unavailable for the recommended games.")
 
 
-
-# ──────────────────────────────────────────────────────────────
-# 1 · Page setup
-# ──────────────────────────────────────────────────────────────
+# Hanna
+# 1. Page setup
 st.set_page_config("Steam Games Dashboard", "🎮", layout="wide")
 STEAM_BG, STEAM_PANEL, STEAM_PRIMARY, STEAM_TEXT = (
     "#171a21",
@@ -241,9 +237,7 @@ div[data-testid="metric-container"] > label {{color:{STEAM_TEXT};}}
     unsafe_allow_html=True,
 )
 
-# ──────────────────────────────────────────────────────────────
 # 2 · Load & clean data
-# ──────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner="Loading CSV…")
 @st.cache_data(show_spinner="Loading CSV…")
 def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
@@ -287,9 +281,8 @@ def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
 
 df = load_data()
 
-# ──────────────────────────────────────────────────────────────
-# 3 · Sidebar filters
-# ──────────────────────────────────────────────────────────────
+# Hanna
+# 2. Sidebar filters
 with st.sidebar:
     st.header("Filters")
 
@@ -315,9 +308,7 @@ if plat_sel:
 if genre_sel and "genres" in view.columns:
     view = view[view["genres"].apply(lambda tags: any(g in tags for g in genre_sel))]
 
-# ──────────────────────────────────────────────────────────────
-# 4 · KPI
-# ──────────────────────────────────────────────────────────────
+# 3. KPI
 st.subheader("Key metrics")
 k1, k2, k3, k4 = st.columns(4)
 k1.metric("Games", f"{len(view):,}")
@@ -328,9 +319,7 @@ if "average_playtime_forever" in view.columns:
 if "positive_ratio" in view.columns:
     k4.metric("Avg positive %", f"{view['positive_ratio'].mean():.1%}")
 
-# ──────────────────────────────────────────────────────────────
-# 5 · Tabs
-# ──────────────────────────────────────────────────────────────
+# 4. Tabs
 tabs = st.tabs(
     [
         "Data Analysis & Exploration 🔬",
@@ -530,35 +519,10 @@ with tabs[1]:
             prob = clf.predict_proba(X_one)[0, 1]
             st.metric("Predicted success %", f"{prob:.1%}")
 
+# Hanna
 # Recommender
 with tabs[2]: 
     run_recommender_tab(df) 
-    # st.header("Game Recommender 🎯")
-
-    # if "genres" in df.columns:
-    #     selected_genre = st.selectbox("Select a genre", genre_catalog)
-
-    #     num_recs = st.slider("Number of recommendations", 1, 20, 5)
-
-    #     # Filter by genre and sort by positive ratio
-    #     recs = df[df["genres"].apply(lambda g: selected_genre in g)].copy()
-    #     recs = recs[recs["positive_ratio"].notna()]
-    #     recs = recs.sort_values("positive_ratio", ascending=False).head(num_recs)
-
-    #     if not recs.empty:
-    #         st.subheader(f"Top {num_recs} {selected_genre} games by positive reviews")
-    #         for _, row in recs.iterrows():
-    #             st.markdown(f"""
-    #             **🎮 {row['name']}**
-    #             - 💰 Price: ${row['price']:.2f}  
-    #             - 👍 Positive %: {row['positive_ratio']:.1%}  
-    #             - ⏱ Avg Playtime: {row['average_playtime_forever']:.1f} hrs  
-    #             - 📝 Description: {row.get('about_the_game', '')[:200]}...
-    #             """)
-    #     else:
-    #         st.warning("No games found for this genre.")
-    # else:
-    #     st.info("No genre information available in dataset.")
 
 with tabs[3]:
     st.header("Advanced Insights & Forecasting 🔮")
@@ -695,5 +659,6 @@ with tabs[3]:
                          labels={"positive_ratio": "Avg Positive %", "price": "Avg Price"},
                          title="Genre Innovation Map")
         st.plotly_chart(fig, use_container_width=True)
+
 
 
