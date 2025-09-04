@@ -245,17 +245,13 @@ div[data-testid="metric-container"] > label {{color:{STEAM_TEXT};}}
 # 2 Load & clean data
 @st.cache_data(show_spinner="Loading CSV…", hash_funcs={Path: str})
 def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
-    """
-    Load and preprocess Steam games dataset.
-    If CSV is not found locally, download it from Google Drive.
-    """
-
-    file_id = "1ZHXAGndVyWHv5ldKk49J775c5pLac4a"
+# https://drive.google.com/file/d/1ZHXAGndVyWHv5ldKk49J775c5pLac4a-/view?usp=drive_link
+    file_id = "1ZHXAGndVyWHv5ldKk49J775c5pLac4a-"
     url = f"https://drive.google.com/uc?id={file_id}"
 
     # Download file if not already present
     if not os.path.exists(path):
-        gdown.download(url, str(path), quiet=False)
+        gdown.download(url, str(path), quiet=False, fuzzy=True)
 
     # Read CSV
     df = pd.read_csv(path)
