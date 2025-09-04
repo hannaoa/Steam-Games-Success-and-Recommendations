@@ -243,13 +243,19 @@ div[data-testid="metric-container"] > label {{color:{STEAM_TEXT};}}
 )
 
 # 2 Load & clean data
-@st.cache_data(show_spinner="Loading CSV…")
+@st.cache_data(show_spinner="Loading CSV…", hash_funcs={Path: str})
 def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
-    # If file is missing, download it from Google Drive
+    """
+    Load and preprocess Steam games dataset.
+    If CSV is not found locally, download it from Google Drive.
+    """
+
+    file_id = "1ZHXAGndVyWHv5ldKk49J775c5pLac4a"
+    url = f"https://drive.google.com/uc?id={file_id}"
+
+    # Download file if not already present
     if not os.path.exists(path):
-        file_id = "1ZHXAGndVyWHv5ldKk49J775c5pLac4a" 
-        url = f"https://drive.google.com/uc?id={file_id}"
-        gdown.download(url, path, quiet=False)
+        gdown.download(url, str(path), quiet=False)
 
     # Read CSV
     df = pd.read_csv(path)
@@ -262,7 +268,7 @@ def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
         .str.replace("-", "_")
     )
 
-    # Handle release_date → year
+    # Convert release_date → datetime + extract year
     if "release_date" in df.columns:
         df["release_date"] = pd.to_datetime(df["release_date"], errors="coerce")
         df["year"] = df["release_date"].dt.year
@@ -280,7 +286,7 @@ def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # Positive review ratio
+    # Calculate positive review ratio
     if {"positive", "negative"}.issubset(df.columns):
         denom = df["positive"] + df["negative"]
         df["positive_ratio"] = np.where(denom > 0, df["positive"] / denom, np.nan)
@@ -295,7 +301,6 @@ def load_data(path: Union[str, Path] = "steam_games.csv") -> pd.DataFrame:
 
     return df
 
-# Load once
 df = load_data()
 st.write("✅ Dataset loaded:", df.shape)
 
