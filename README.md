@@ -4,7 +4,11 @@ Steam is a platform that hosts numerous games and operates in a highly competiti
 
 Dataset from FronkonGames on Hugging Face: https://huggingface.co/datasets/FronkonGames/steam-games-dataset
 
+Success Analysis:
 <img width="1618" height="791" alt="image" src="https://github.com/user-attachments/assets/6646094e-fa2f-4e54-b598-37c9f0846e6f" />
+
+Game Recommender:
+<img width="1566" height="673" alt="image" src="https://github.com/user-attachments/assets/42073d36-3cdd-4479-9b46-63365e6a7004" />
 
 ## Technologies Used
 - Programming Language: Python
